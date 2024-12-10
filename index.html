@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spilledåsen - En Kryptisk Symfoni</title>
+  <style>
+    html, body {
+      margin: 0; 
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff; 
+      color: #000;    
+    }
+    .container {
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    p {
+      margin-bottom: 30px;
+    }
+    #startButton {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #000; 
+      border: none;
+      border-radius: 5px;
+      color: #fff;      
+      transition: background 0.3s ease;
+    }
+    #startButton:hover {
+      background: #333; 
+    }
+    #notesDisplay {
+      margin-top: 50px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .note {
+      width: 60px;
+      height: 60px;
+      background: #fff;        
+      border: 2px solid #000;  
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2em;
+      color: #000;            
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+    .note.active {
+      background: #000;  
+      color: #fff;      
+      transform: scale(1.2);
+    }
+
+    /* Music box SVG container */
+    #musicBoxContainer {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+      position: relative;
+      animation: floaty 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floaty {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-15px); }
+    }
+
+    #musicBoxContainer svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    #musicBoxContainer:before {
+      content: '♪';
+      font-size: 2em;
+      color: #000; 
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -90%);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Spilledåsen - En kryptisk symfoni</h1>
+    <p>Klik på knappen for at starte eller stoppe musikken.</p>
+    <div id="musicBoxContainer">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <!-- Base of the music box -->
+        <rect x="15" y="50" width="70" height="30" fill="#fff" stroke="#000" stroke-width="2" rx="5" ry="5"/>
+        <!-- Lid of the music box -->
+        <rect x="20" y="25" width="60" height="30" fill="#fff" stroke="#000" stroke-width="2" rx="3" ry="3"/>
+        <!-- Hinge lines -->
+        <line x1="20" y1="55" x2="20" y2="50" stroke="#000" stroke-width="2"/>
+        <line x1="80" y1="55" x2="80" y2="50" stroke="#000" stroke-width="2"/>
+        <!-- Crank handle -->
+        <line x1="85" y1="60" x2="95" y2="60" stroke="#000" stroke-width="2"/>
+        <circle cx="95" cy="60" r="3" fill="#000"/>
+      </svg>
+    </div>
+    <button id="startButton">Start Musik</button>
+
+    <div id="notesDisplay">
+      <div class="note" data-note="F4">F</div>
+      <div class="note" data-note="E4">E</div>
+      <div class="note" data-note="C4">C</div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.34/Tone.js"></script>
+  <script>
+    const synth = new Tone.Synth().toDestination();
+    const noteElements = document.querySelectorAll('.note');
+    const notes = ["F4", "E4", "C4", "E4"];
+    
+    let isPlaying = false; 
+
+    function highlightNote(note) {
+      noteElements.forEach(el => el.classList.remove('active'));
+      if (!note) return; 
+      const current = [...noteElements].find(el => el.dataset.note === note);
+      if (current) current.classList.add('active');
+    }
+
+    function scheduleNotes() {
+      Tone.Transport.cancel();
+
+      // Schedule each note at a quarter note interval:
+      // F at beat 1 (0:0:0)
+      Tone.Transport.schedule(time => {
+        synth.triggerAttackRelease("F4", "4n", time);
+        highlightNote("F4");
+      }, "0:0:0");
+
+      // E at beat 2 (0:1:0)
+      Tone.Transport.schedule(time => {
+        synth.triggerAttackRelease("E4", "4n", time);
+        highlightNote("E4");
+      }, "0:1:0");
+
+      // C at beat 3 (0:2:0)
+      Tone.Transport.schedule(time => {
+        synth.triggerAttackRelease("C4", "4n", time);
+        highlightNote("C4");
+      }, "0:2:0");
+
+      // E at beat 4 (0:3:0)
+      Tone.Transport.schedule(time => {
+        synth.triggerAttackRelease("E4", "4n", time);
+        highlightNote("E4");
+      }, "0:3:0");
+
+      Tone.Transport.bpm.value = 60;
+      Tone.Transport.timeSignature = 4;  
+      Tone.Transport.loop = true;
+      Tone.Transport.loopEnd = "1m"; 
+    }
+
+    document.getElementById('startButton').addEventListener('click', async () => {
+      await Tone.start();
+
+      if (!isPlaying) {
+        // Start the music
+        scheduleNotes();
+        Tone.Transport.start();
+        document.getElementById('startButton').innerText = "Stop Musik";
+        isPlaying = true;
+      } else {
+        // Stop the music
+        Tone.Transport.stop();
+        highlightNote(null); 
+        document.getElementById('startButton').innerText = "Start Musik";
+        isPlaying = false;
+      }
+    });
+  </script>
+</body>
+</html>
